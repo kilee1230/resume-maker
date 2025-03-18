@@ -1,4 +1,3 @@
-// components/forms/EducationForm.tsx
 "use client";
 
 import { useState } from "react";

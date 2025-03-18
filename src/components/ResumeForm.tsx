@@ -1,4 +1,3 @@
-// components/ResumeForm.tsx
 "use client";
 
 import { ResumeData } from "@/types/resume";

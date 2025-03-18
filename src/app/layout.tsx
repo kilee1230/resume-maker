@@ -1,4 +1,3 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
 import "./globals.css";
@@ -14,7 +13,6 @@ export const metadata: Metadata = {
   description: "Modern resume builder with AI suggestions",
 };
 
-// app/layout.tsx (update the main section)
 export default function RootLayout({
   children,
 }: {

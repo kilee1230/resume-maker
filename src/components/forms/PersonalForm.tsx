@@ -1,4 +1,3 @@
-// components/forms/PersonalForm.tsx
 "use client";
 
 import { Personal } from "@/types/resume";

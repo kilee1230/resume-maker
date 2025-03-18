@@ -1,4 +1,3 @@
-// app/api/ai-suggest/route.ts
 import { NextResponse } from "next/server";
 import { ResumeData } from "@/types/resume";
 import OpenAI from "openai";
