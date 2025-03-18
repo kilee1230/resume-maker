@@ -27,18 +27,22 @@ export default function HomePage() {
           onClick={closeDrawer}
         />
       </div>
-      <Card>
-        <CardContent className="pt-6">
-          <ResumeForm
-            resumeData={resumeData}
-            setResumeData={setResumeData}
-            activeSection={activeSection}
-            setActiveSection={setActiveSection}
-          />
-        </CardContent>
-      </Card>
-      <AIAssistant resumeData={resumeData} setResumeData={setResumeData} />
-      <ExportPDF resumeData={resumeData} />
+      <div className="pl-4 pr-4">
+        <Card>
+          <CardContent>
+            <ResumeForm
+              resumeData={resumeData}
+              setResumeData={setResumeData}
+              activeSection={activeSection}
+              setActiveSection={setActiveSection}
+            />
+          </CardContent>
+        </Card>
+        <div className="my-4"></div>
+        <AIAssistant resumeData={resumeData} setResumeData={setResumeData} />
+        <div className="my-4"></div>
+        <ExportPDF resumeData={resumeData} />
+      </div>
     </div>
   );
 
