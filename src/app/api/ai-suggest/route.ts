@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { ResumeData } from "@/types/resume";
-import OpenAI from "openai";
+import OpenAI from "@openai/openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || "",
 });
 
 export async function POST(request: Request) {
