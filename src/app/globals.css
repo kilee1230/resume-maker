@@ -771,3 +771,9 @@ button {
   gap: 8px;
   z-index: 50;
 }
+
+@media (max-width: 768px) {
+  .pdf-controls {
+    display: none !important;
+  }
+}

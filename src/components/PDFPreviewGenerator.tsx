@@ -417,7 +417,7 @@ const PDFPreviewGenerator = ({ resumeData }: PDFPreviewGeneratorProps) => {
       )}
 
       {/* Zoom controls */}
-      <div className="fixed flex bottom-4 right-4 pdf-controls">
+      <div className="hidden md:flex md:fixed md:bottom-4 md:right-4 pdf-controls">
         <button
           onClick={zoomOut}
           className="p-2 bg-white rounded-full shadow-md hover:bg-gray-100"
