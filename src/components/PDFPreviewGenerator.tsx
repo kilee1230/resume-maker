@@ -8,6 +8,7 @@ import { pdfjs, Document, Page } from "react-pdf";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
 import { ZoomIn, ZoomOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { useMediaQuery } from "@/hook/useMediaQuery";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -21,6 +22,16 @@ const PDFPreviewGenerator = ({ resumeData }: PDFPreviewGeneratorProps) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);
   const [loading, setLoading] = useState<boolean>(true);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  // Set different default scale based on screen size
+  useEffect(() => {
+    if (isMobile) {
+      setScale(0.6); // 60% zoom for mobile
+    } else {
+      setScale(1.0); // 100% zoom for desktop
+    }
+  }, [isMobile]);
 
   // Zoom controls
   const zoomIn = () => setScale((prev) => Math.min(prev + 0.1, 2.0));

@@ -8,7 +8,7 @@ import { ResumeData, defaultResumeData } from "@/types/resume";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Pencil, X } from "lucide-react";
+import { Pencil } from "lucide-react";
 
 export default function HomePage() {
   const [resumeData, setResumeData] = useState<ResumeData>(defaultResumeData);
@@ -25,9 +25,7 @@ export default function HomePage() {
           size="icon"
           aria-label="Close drawer"
           onClick={closeDrawer}
-        >
-          <X className="w-5 h-5" />
-        </Button>
+        />
       </div>
       <Card>
         <CardContent className="pt-6">
