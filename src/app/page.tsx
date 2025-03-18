@@ -15,7 +15,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
       {/* Editor section */}
-      <div className="w-full space-y-4 lg:w-3/5 xl:w-1/2">
+      <div className="sticky top-0 w-full h-screen p-4 space-y-4 overflow-y-auto lg:w-2/5">
         <Card>
           <CardContent className="pt-6">
             <ResumeForm
@@ -29,18 +29,12 @@ export default function HomePage() {
 
         <AIAssistant resumeData={resumeData} setResumeData={setResumeData} />
 
-        <Card>
-          <CardContent className="pt-6">
-            <ExportPDF resumeData={resumeData} />
-          </CardContent>
-        </Card>
+        <ExportPDF resumeData={resumeData} />
       </div>
 
       {/* Preview section */}
-      <div className="w-full lg:w-2/5 xl:w-1/2">
-        <div className="sticky top-20">
-          <ResumePreview resumeData={resumeData} />
-        </div>
+      <div className="w-full overflow-y-auto lg:w-3/5">
+        <ResumePreview resumeData={resumeData} />
       </div>
     </div>
   );

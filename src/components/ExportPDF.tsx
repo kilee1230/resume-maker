@@ -1,288 +1,295 @@
+// components/ExportPDF.tsx
 "use client";
 
 import { useState } from "react";
 import { ResumeData } from "@/types/resume";
 import { Button } from "@/components/ui/button";
 import { DownloadIcon } from "lucide-react";
-import { jsPDF } from "jspdf";
+import jsPDF from "jspdf";
 
 interface ExportPDFProps {
   resumeData: ResumeData;
 }
 
-const ExportPDF = ({ resumeData }: ExportPDFProps) => {
-  const [isExporting, setIsExporting] = useState(false);
+// This should be exactly the same as the generatePDF function in PDFPreviewGenerator
+const generateResumeForExport = async (resumeData: ResumeData) => {
+  // Create PDF document
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  });
 
-  const handleExport = async () => {
-    setIsExporting(true);
+  // Set up dimensions
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 15;
+  const contentWidth = pageWidth - margin * 2;
+  let y = margin;
 
-    try {
-      const { personal, experiences, education, skills } = resumeData;
+  // Function to add a heading
+  const addHeading = (text: string | string[], y: number, fontSize = 16) => {
+    // Check if we need a new page for the heading
+    if (y > pageHeight - 40) {
+      doc.addPage();
+      y = margin;
+    }
 
-      // Create PDF document
-      const doc = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
+    doc.setFontSize(fontSize);
+    doc.setFont("helvetica", "bold");
+    doc.text(text, margin, y);
+    y += 1;
+    doc.setLineWidth(0.2);
+    doc.line(margin, y + 3, pageWidth - margin, y + 3);
+    return y + 8;
+  };
 
-      // Set up dimensions
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 15;
-      const usableWidth = pageWidth - margin * 2;
-      let yPos = margin;
+  // Function to add wrapped text
+  const addWrappedText = (text: string, y: number, fontSize = 11) => {
+    doc.setFontSize(fontSize);
+    doc.setFont("helvetica", "normal");
+    const lines = doc.splitTextToSize(text || "", contentWidth);
 
-      // Helper function to add text with word wrap
-      const addWrappedText = (
-        text: string,
-        x: number,
-        y: number,
-        maxWidth: number,
-        lineHeight: number
-      ) => {
-        const lines = doc.splitTextToSize(text, maxWidth);
-        doc.text(lines, x, y);
-        return y + lineHeight * lines.length;
-      };
+    // Check if we need to add a new page if text is too long
+    if (y + lines.length * 5 > pageHeight - margin) {
+      // If text would flow to next page, check how many lines fit on current page
+      const linesPerPage = Math.floor((pageHeight - margin - y) / 5);
 
-      // Name header
-      doc.setFontSize(22);
+      if (linesPerPage > 0) {
+        // Add as many lines as can fit on current page
+        const firstPageLines = lines.slice(0, linesPerPage);
+        doc.text(firstPageLines, margin, y);
+
+        // Add a new page for the rest
+        doc.addPage();
+        y = margin;
+
+        // Add remaining lines to new page
+        const remainingLines = lines.slice(linesPerPage);
+        if (remainingLines.length > 0) {
+          doc.text(remainingLines, margin, y);
+          y += 5 * remainingLines.length;
+        }
+      } else {
+        // If no lines fit, add a new page and start there
+        doc.addPage();
+        y = margin;
+        doc.text(lines, margin, y);
+        y += 5 * lines.length;
+      }
+    } else {
+      // If all text fits on current page, add it
+      doc.text(lines, margin, y);
+      y += 5 * lines.length;
+    }
+
+    return y;
+  };
+
+  // Check if we need a new page (with some space for content)
+  const checkNewPage = (y: number, neededSpace = 15) => {
+    if (y + neededSpace > pageHeight - margin) {
+      doc.addPage();
+      return margin;
+    }
+    return y;
+  };
+
+  // Name
+  doc.setFontSize(24);
+  doc.setFont("helvetica", "bold");
+  const name = resumeData?.personal?.name || "Your Name";
+  doc.text(name, pageWidth / 2, y, { align: "center" });
+  y += 10;
+
+  // Contact info
+  if (resumeData?.personal) {
+    const { email, phone, location } = resumeData.personal;
+    let contactInfo = "";
+
+    if (email) contactInfo += email;
+    if (phone) contactInfo += contactInfo ? ` | ${phone}` : phone;
+    if (location) contactInfo += contactInfo ? ` | ${location}` : location;
+
+    if (contactInfo) {
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.text(contactInfo, pageWidth / 2, y, { align: "center" });
+      y += 5;
+    }
+  }
+
+  // Website
+  if (resumeData?.personal?.website) {
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(0, 0, 255);
+    doc.text(resumeData.personal.website, pageWidth / 2, y, {
+      align: "center",
+    });
+    doc.setTextColor(0);
+    y += 10;
+  } else {
+    y += 5;
+  }
+
+  // Summary
+  if (resumeData?.personal?.summary) {
+    y = addHeading("Summary", y);
+    y = addWrappedText(resumeData.personal.summary, y);
+    y += 8;
+  }
+
+  // Experience
+  if (
+    Array.isArray(resumeData?.experiences) &&
+    resumeData.experiences.length > 0
+  ) {
+    y = addHeading("Experience", y);
+
+    for (const exp of resumeData.experiences) {
+      // Check if we need a new page for this experience
+      y = checkNewPage(y, 20);
+
+      // Position title
+      doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
-      const nameText = personal.name || "Your Name";
-      doc.text(nameText, pageWidth / 2, yPos, { align: "center" });
-      yPos += 8;
+      doc.text(`${exp.title} | ${exp.company}`, margin, y);
 
-      // Contact information
+      // Dates
+      const dates = exp.current
+        ? `${exp.startDate} - Present`
+        : `${exp.startDate} - ${exp.endDate}`;
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
-      const contactInfo = [
-        personal.email,
-        personal.phone,
-        personal.location,
-        personal.website,
-      ]
-        .filter(Boolean)
-        .join(" | ");
+      const textWidth =
+        (doc.getStringUnitWidth(dates) * 10) / doc.internal.scaleFactor;
+      doc.text(dates, pageWidth - margin - textWidth, y);
+      y += 5;
 
-      if (contactInfo) {
-        doc.text(contactInfo, pageWidth / 2, yPos, { align: "center" });
-        yPos += 8;
+      // Location
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "italic");
+      doc.text(exp.location, margin, y);
+      y += 5;
+
+      // Description
+      if (exp.description) {
+        y = addWrappedText(exp.description, y, 10);
       }
 
-      // Summary
-      if (personal.summary) {
-        yPos += 4;
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.text("Summary", margin, yPos);
-        yPos += 5;
+      y += 5;
+    }
 
-        doc.setLineWidth(0.2);
-        doc.line(margin, yPos, pageWidth - margin, yPos);
-        yPos += 5;
+    y += 3;
+  }
 
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        yPos = addWrappedText(personal.summary, margin, yPos, usableWidth, 4);
-        yPos += 6;
+  // Education
+  if (Array.isArray(resumeData?.education) && resumeData.education.length > 0) {
+    y = addHeading("Education", y);
+
+    for (const edu of resumeData.education) {
+      // Check if we need a new page
+      y = checkNewPage(y, 20);
+
+      // Degree
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${edu.degree} | ${edu.institution}`, margin, y);
+
+      // Dates
+      const dates = `${edu.startDate} - ${edu.endDate || "Present"}`;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      const textWidth =
+        (doc.getStringUnitWidth(dates) * 10) / doc.internal.scaleFactor;
+      doc.text(dates, pageWidth - margin - textWidth, y);
+      y += 5;
+
+      // Location
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "italic");
+      doc.text(edu.location, margin, y);
+      y += 5;
+
+      // Description
+      if (edu.description) {
+        y = addWrappedText(edu.description, y, 10);
       }
 
-      // Experience
-      if (experiences?.length > 0) {
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.text("Experience", margin, yPos);
-        yPos += 5;
+      y += 5;
+    }
 
-        doc.setLineWidth(0.2);
-        doc.line(margin, yPos, pageWidth - margin, yPos);
-        yPos += 5;
+    y += 3;
+  }
 
-        experiences.forEach((exp) => {
-          // Add page break if needed
-          if (yPos > 270) {
-            doc.addPage();
-            yPos = margin;
-          }
+  // Skills with ratings in brackets
+  if (Array.isArray(resumeData?.skills) && resumeData.skills.length > 0) {
+    y = addHeading("Skills", y);
 
-          doc.setFontSize(12);
-          doc.setFont("helvetica", "bold");
-          const jobTitle = `${exp.title} | ${exp.company}`;
-          doc.text(jobTitle, margin, yPos);
+    // Format skills into groups of 3-4 per line
+    const skillsPerLine = 3;
+    const skillLines: string[] = [];
+    let currentLine: string[] = [];
 
-          const dateRange = exp.current
-            ? `${exp.startDate} - Present`
-            : `${exp.startDate} - ${exp.endDate}`;
+    resumeData.skills.forEach((skill, index) => {
+      const skillText = `${skill.name} (${skill.level})`;
+      currentLine.push(skillText);
 
-          doc.setFontSize(10);
-          doc.setFont("helvetica", "normal");
-          const dateWidth =
-            (doc.getStringUnitWidth(dateRange) * 10) / doc.internal.scaleFactor;
-          doc.text(dateRange, pageWidth - margin - dateWidth, yPos);
-          yPos += 4;
-
-          doc.setFontSize(10);
-          doc.setFont("helvetica", "italic");
-          doc.text(exp.location, margin, yPos);
-          yPos += 4;
-
-          doc.setFontSize(10);
-          doc.setFont("helvetica", "normal");
-          yPos = addWrappedText(
-            exp.description,
-            margin,
-            yPos,
-            usableWidth,
-            3.5
-          );
-          yPos += 6;
-        });
+      if (
+        currentLine.length === skillsPerLine ||
+        index === resumeData.skills.length - 1
+      ) {
+        skillLines.push(currentLine.join(" • "));
+        currentLine = [];
       }
+    });
 
-      // Education
-      if (education?.length > 0) {
-        // Add page break if needed
-        if (yPos > 250) {
-          doc.addPage();
-          yPos = margin;
-        }
+    // Add skill lines to document
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
 
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.text("Education", margin, yPos);
-        yPos += 5;
+    for (const line of skillLines) {
+      y = checkNewPage(y, 6);
+      doc.text(line, margin, y);
+      y += 5;
+    }
 
-        doc.setLineWidth(0.2);
-        doc.line(margin, yPos, pageWidth - margin, yPos);
-        yPos += 5;
+    y += 5;
+  } // Return the generated PDF
+  return doc;
+};
 
-        education.forEach((edu) => {
-          doc.setFontSize(12);
-          doc.setFont("helvetica", "bold");
-          const eduTitle = `${edu.degree} | ${edu.institution}`;
-          doc.text(eduTitle, margin, yPos);
+export const ExportPDF = ({ resumeData }: ExportPDFProps) => {
+  const [isGenerating, setIsGenerating] = useState(false);
 
-          const dateRange = `${edu.startDate} - ${edu.endDate || "Present"}`;
-          doc.setFontSize(10);
-          doc.setFont("helvetica", "normal");
-          const dateWidth =
-            (doc.getStringUnitWidth(dateRange) * 10) / doc.internal.scaleFactor;
-          doc.text(dateRange, pageWidth - margin - dateWidth, yPos);
-          yPos += 4;
+  const handleExportPDF = async () => {
+    try {
+      setIsGenerating(true);
+      const doc = await generateResumeForExport(resumeData);
 
-          doc.setFontSize(10);
-          doc.setFont("helvetica", "italic");
-          doc.text(edu.location, margin, yPos);
-          yPos += 4;
-
-          if (edu.description) {
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            yPos = addWrappedText(
-              edu.description,
-              margin,
-              yPos,
-              usableWidth,
-              3.5
-            );
-          }
-          yPos += 6;
-        });
-      }
-
-      // Skills
-      if (skills?.length > 0) {
-        // Add page break if needed
-        if (yPos > 270) {
-          doc.addPage();
-          yPos = margin;
-        }
-
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.text("Skills", margin, yPos);
-        yPos += 5;
-
-        doc.setLineWidth(0.2);
-        doc.line(margin, yPos, pageWidth - margin, yPos);
-        yPos += 5;
-
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-
-        const skillsPerRow = 3;
-        const skillWidth = usableWidth / skillsPerRow;
-
-        // Group skills into rows of 3
-        for (let i = 0; i < skills.length; i += skillsPerRow) {
-          let rowHeight = 0;
-
-          for (let j = 0; j < skillsPerRow && i + j < skills.length; j++) {
-            const skill = skills[i + j];
-            const x = margin + j * skillWidth;
-
-            const skillText = skill.level
-              ? `${skill.name} (${skill.level}/5)`
-              : skill.name;
-
-            doc.text(skillText, x, yPos);
-          }
-
-          yPos += 5;
-        }
-      }
+      // Generate a filename based on the person's name or a default
+      const fileName = resumeData?.personal?.name
+        ? `${resumeData.personal.name.replace(/\s+/g, "_")}_Resume.pdf`
+        : "Resume.pdf";
 
       // Save the PDF
-      const fileName = personal.name
-        ? `${personal.name.replace(/\s+/g, "_")}_resume.pdf`
-        : "resume.pdf";
-
       doc.save(fileName);
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("Failed to generate PDF. Please try again.");
     } finally {
-      setIsExporting(false);
+      setIsGenerating(false);
     }
   };
 
   return (
     <Button
-      onClick={handleExport}
-      variant="outline"
-      className="w-full"
-      disabled={isExporting}
+      onClick={handleExportPDF}
+      disabled={isGenerating}
+      className="flex items-center gap-2"
     >
-      {isExporting ? (
-        <>
-          <svg
-            className="w-4 h-4 mr-2 -ml-1 animate-spin"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          Exporting...
-        </>
-      ) : (
-        <>
-          <DownloadIcon className="w-4 h-4 mr-2" />
-          Export PDF
-        </>
-      )}
+      <DownloadIcon className="w-4 h-4" />
+      {isGenerating ? "Generating..." : "Export PDF"}
     </Button>
   );
 };

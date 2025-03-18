@@ -126,43 +126,423 @@
   }
 }
 
-/* Improve resume preview styling */
-.resume-preview-container {
-  max-height: calc(100vh - 140px);
-  overflow-y: auto;
+/* PDF-like appearance for resume preview */
+.pdf-preview-container {
+  padding: 40px 20px;
+  background-color: #e0e0e0;
+  min-height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: auto;
+  background-image: linear-gradient(
+      45deg,
+      #d7d7d7 25%,
+      transparent 25%,
+      transparent 75%,
+      #d7d7d7 75%
+    ),
+    linear-gradient(
+      45deg,
+      #d7d7d7 25%,
+      transparent 25%,
+      transparent 75%,
+      #d7d7d7 75%
+    );
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
 }
 
-@media print {
-  .resume-preview-container {
-    max-height: none;
-    overflow: visible;
-  }
+.pdf-pages-container {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
 
-  /* Hide everything except the preview when printing */
-  body > * {
-    display: none;
-  }
+.pdf-page-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
 
-  body .resume-preview-container {
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
+.pdf-page {
+  width: 210mm;
+  height: 297mm;
+  background-color: white;
+  box-shadow: 0 7px 25px rgba(0, 0, 0, 0.3);
+  padding: 20mm;
+  position: relative;
+  overflow: hidden;
+  break-inside: avoid;
+  display: flex;
+  flex-direction: column;
+  /* Sharp corners */
+  border-radius: 0;
+}
+
+/* Paper texture */
+.pdf-page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAAUVBMVEWFhYWDg4N3d3dtbW17e3t1dXWBgYGHh4d5eXlzc3OLi4ubm5uVlZWPj4+NjY19fX2JiYl/f39ra2uRkZGZmZlpaWmXl5dvb29xcXGTk5NnZ2c8TV1mAAAAG3RSTlNAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAvEOwtAAAFVklEQVR4XpWWB67c2BUFb3g557T/hRo9/WUMZHlgr4Bg8Z4qQgQJlHI4A8SzFVrapvmTF9O7dmYRFZ60YiBhJRCgh1FYhiLAmdvX0CzTOpNE77ME0Zty/nWWzchDtiqrmQDeuv3powQ5ta2eN0FY0InkqDD73lT9c9lEzwUNqgFHs9VQce3TVClFCQrSTfOiYkVJQBmpbq2L6iZavPnAPcoU0dSw0SUTqz/GtrGuXfbyyBniKykOWQWGqwwMA7QiYAxi+IlPdqo+hYHnUt5ZPfnsHJyNiDtnpJyayNBkF6cWoYGAMY92U2hXHF/C1M8uP/ZtYdiuj26UdAdQQSXQErwSOMzt/XWRWAz5GuSBIkwG1H3FabJ2OsUOUhGC6tK4EMtJO0ttC6IBD3kM0ve0tJwMdSfjZo+EEISaeTr9P3wYrGjXqyC1krcKdhMpxEnt5JetoulscpyzhXN5FRpuPHvbeQaKxFAEB6EN+cYN6xD7RYGpXpNndMmZgM5Dcs3YSNFDHUo2LGfZuukSWyUYirJAdYbF3MfqEKmjM+I2EfhA94iG3L7uKrR+GdWD73ydlIB+6hgref1QTlmgmbM3/LeX5GI1Ux1RWpgxpLuZ2+I+IjzZ8wqE4nilvQdkUdfhzI5QDWy+kw5Wgg2pGpeEVeCCA7b85BO3F9DzxB3cdqvBzWcmzbyMiqhzuYqtHRVG2y4x+KOlnyqla8AoWWpuBoYRxzXrfKuILl6SfiWCbjxoZJUaCBj1CjH7GIaDbc9kqBY3W/Rgjda1iqQcOJu2WW+76pZC9QG7M00dffe9hNnseupFL53r8F7YHSwJWUKP2q+k7RdsxyOB11n0xtOvnW4irMMFNV4H0uqwS5ExsmP9AxbDTc9JwgneAT5vTiUSm1E7BSflSt3bfa1tv8Di3R8n3Af7MNWzs49hmauE2wP+ttrq+AsWpFG2awvsuOqbipWHgtuvuaAE+A1Z/7gC9hesnr+7wqCwG8c5yAg3AL1fm8T9AZtp/bbJGwl1pNrE7RuOX7PeMRUERVaPpEs+yqeoSmuOlokqw49pgomjLeh7icHNlG19yjs6XXOMedYm5xH2YxpV2tc0Ro2jJfxC50ApuxGob7lMsxfTbeUv07TyYxpeLucEH1gNd4IKH2LAg5TdVhlCafZvpskfncCfx8pOhJzd76bJWeYFnFciwcYfubRc12Ip/ppIhA1/mSZ/RxjFDrJC5xifFjJpY2Xl5zXdguFqYyTR1zSp1Y9p+tktDYYSNflcxI0iyO4TPBdlRcpeqjK/piF5bklq77VSEaA+z8qmJTFzIWiitbnzR794USKBUaT0NTEsVjZqLaFVqJoPN9ODG70IPbfBHKK+/q/AWR0tJzYHRULOa4MP+W/HfGadZUbfw177G7j/OGbIs8TahLyynl4X4RinF793Oz+BU0saXtUHrVBFT/DnA3ctNPoGbs4hRIjTok8i+algT1lTHi4SxFvONKNrgQFAq2/gFnWMXgwffgYMJpiKYkmW3tTg3ZQ9Jq+f8XN+A5eeUKHWvJWJ2sgJ1Sop+wwhqFVijqWaJhwtD8MNlSBeWNNWTa5Z5kPZw5+LbVT99wqTdx29lMUH4OIG/D86ruKEauBjvH5xy6um/Sfj7ei6UUVk4AIl3MyD4MSSTOFgSwsH/QJWaQ5as7ZcmgBZkzjjU1UrQ74ci1gWBCSGHtuV1H2mhSnO3Wp/3fEV5a+4wz//6qy8JxjZsmxxy5+4w9CDNJY09T072iKG0EnOS0arEYgXqYnXcYHwjTtUNAcMelOd4xpkoqiTYICWFq0JSiPfPDQdnt+4/wuqcXY47QILbgAAAABJRU5ErkJggg==");
+  opacity: 0.03;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Page content container */
+.page-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+}
+
+/* Page numbers */
+.page-number {
+  position: absolute;
+  bottom: 10mm;
+  right: 10mm;
+  font-size: 12px;
+  color: #888;
+  z-index: 2;
+}
+
+/* PDF page fold corner effect */
+.pdf-page::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 16px 16px 0;
+  border-color: transparent #d1d1d1 transparent transparent;
+  box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+}
+
+/* Ensure all content inside has proper styling */
+.pdf-page h1,
+.pdf-page h2,
+.pdf-page h3 {
+  color: #000 !important;
+}
+
+.pdf-page .separator {
+  height: 1px;
+  background-color: #d1d5db;
+  margin-bottom: 0.75rem;
+  border-radius: 0;
+}
+
+.pdf-page .badge {
+  border-radius: 2px !important;
+}
+
+/* PDF zoom controls */
+.pdf-controls {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 8px;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 8px;
+  border-radius: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+/* Enhanced shadow effect for PDF pages */
+.pdf-page {
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08), 0 2px 2px rgba(0, 0, 0, 0.08),
+    0 4px 4px rgba(0, 0, 0, 0.08), 0 8px 8px rgba(0, 0, 0, 0.08),
+    0 16px 16px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.pdf-page:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.08), 0 4px 4px rgba(0, 0, 0, 0.08),
+    0 8px 8px rgba(0, 0, 0, 0.08), 0 16px 16px rgba(0, 0, 0, 0.08),
+    0 32px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* Realistic paper look */
+.pdf-page {
+  position: relative;
+  background-color: white;
+  background-image: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.01) 0%,
+      rgba(0, 0, 0, 0) 1%,
+      rgba(0, 0, 0, 0) 99%,
+      rgba(0, 0, 0, 0.01) 100%
+    ),
+    linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.01) 0%,
+      rgba(0, 0, 0, 0) 1%,
+      rgba(0, 0, 0, 0) 99%,
+      rgba(0, 0, 0, 0.01) 100%
+    );
+}
+
+/* PDF page transition animation */
+.pdf-page-wrapper {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pdf-page-entering {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  .pdf-page-entered {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .pdf-page-exiting {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+}
+
+/* Mobile navigation styles */
+.pdf-navigation {
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+/* Adjust mobile view for PDF pages */
+@media (max-width: 768px) {
+  .pdf-page {
     width: 100%;
     height: auto;
+    min-height: 500px;
+    padding: 15mm;
+  }
+
+  .pdf-preview-container {
+    padding: 15px 10px;
   }
 }
-.react-calendar {
-  z-index: 50;
+
+/* Fix for PDF export issues with oklch colors */
+@media print, (print-like) {
+  :root {
+    /* Override the shadcn colors with standard colors for PDF export */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+  }
+
+  .pdf-controls,
+  .pdf-navigation {
+    display: none !important;
+  }
+
+  .pdf-page {
+    break-inside: avoid;
+    page-break-after: always;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background-image: none !important;
+  }
+
+  .pdf-page-wrapper {
+    margin-bottom: 0 !important;
+  }
+
+  /* Ensure all text is black in PDF */
+  .pdf-page * {
+    color: black !important;
+    background-color: transparent !important;
+    text-rendering: geometricPrecision !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  .pdf-page .separator {
+    background-color: #000000 !important;
+    border-color: #000000 !important;
+    height: 1px !important;
+    opacity: 0.2 !important;
+  }
+
+  /* Fix skill badges */
+  .pdf-page .badge {
+    border: 1px solid #000000 !important;
+    background-color: transparent !important;
+  }
+
+  .pdf-page .rounded-full {
+    background-color: #cccccc !important;
+  }
+
+  .pdf-page .bg-primary,
+  .pdf-page .bg-blue-600 {
+    background-color: #000000 !important;
+  }
 }
 
-/* Fix calendar position */
-[data-radix-popper-content-wrapper] {
-  z-index: 50 !important;
+/* Better focus styling for accessibility */
+:focus {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
 }
 
-:hover {
+button:focus {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+/* Custom styles for the resume builder app */
+.resume-preview-container-wrapper {
+  padding: 20px;
+  background-color: #f0f0f0;
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: auto;
+}
+
+.resume-preview-container {
+  /* A4 size in pixels at 96 DPI */
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  background-color: white;
+  color: black;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: visible;
+}
+
+/* Fix badge styles for PDF preview */
+.pdf-page .badge {
+  border-radius: 2px !important;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+}
+
+/* Make the form editor more ergonomic */
+.form-container {
+  max-width: 100%;
+  padding-right: 10px;
+}
+
+/* Sticky form navigation */
+.form-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: white;
+}
+
+/* Disable oklch color incompatibilities for export */
+.pdf-compatible {
+  color: black !important;
+  background-color: white !important;
+}
+
+/* Fix for PDF export issues with oklch colors */
+.pdf-export * {
+  --background: white;
+  --foreground: black;
+  --card: white;
+  --card-foreground: black;
+  --primary: #1e40af;
+  --primary-foreground: white;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #1e293b;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #1e293b;
+  --destructive: #ef4444;
+  --destructive-foreground: white;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #1e40af;
+  --radius: 0.5rem;
+}
+
+/* Styling for skill tags in the editor */
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.skill-tag:hover {
+  background: #e2e8f0;
+}
+
+.skill-tag-delete {
+  margin-left: 0.5rem;
+  color: #ef4444;
   cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .pdf-preview-container {
+    padding: 10px;
+  }
+}
+
+/* Custom styles for drag and drop skills */
+.touch-none {
+  touch-action: none;
 }
 
 /* Make dragged items more visible */
@@ -190,7 +570,204 @@
   opacity: 0.8;
 }
 
-/* Improve touch interaction */
-.touch-none {
-  touch-action: none;
+/* Make console warnings easier to see during development */
+.warning {
+  background-color: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  color: #92400e;
+}
+
+/* Animation for saving/loading states */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.saving-indicator {
+  animation: pulse 1.5s infinite;
+  color: #2563eb;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    height: auto;
+  }
+
+  .pdf-preview-container {
+    width: 100% !important;
+    height: auto !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Ensure page breaks work correctly */
+  .pdf-page {
+    page-break-after: always;
+    page-break-inside: avoid;
+    margin: 0 !important;
+  }
+
+  /* Hide corner fold effect and page numbers when printing */
+  .pdf-page::after,
+  .page-number {
+    display: none !important;
+  }
+
+  /* Reset any transformations */
+  .pdf-pages-container {
+    transform: none !important;
+  }
+}
+
+/* Utilities for PDF appearance */
+.break-anywhere {
+  overflow-wrap: anywhere;
+}
+
+/* Fix vertical rhythm in resume preview */
+.pdf-page h1 {
+  margin-top: 0;
+  line-height: 1.2;
+}
+
+.pdf-page h2 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+.pdf-page p {
+  margin-bottom: 0.75em;
+  line-height: 1.5;
+}
+
+/* Improve form usability */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+/* Make sure forms are keyboard-navigable */
+input,
+textarea,
+select,
+button {
+  transition: outline-color 0.2s ease;
+}
+
+/* Fix date picker z-index issues */
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker__month-container {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Make sure popovers appear above other elements */
+.react-calendar {
+  z-index: 50;
+}
+
+/* Fix calendar position */
+[data-radix-popper-content-wrapper] {
+  z-index: 50 !important;
+}
+
+/* PDF Preview styling */
+.pdf-preview-outer-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 80vh;
+  overflow: hidden;
+}
+
+.pdf-preview-container {
+  background-color: #e0e0e0;
+  padding: 20px;
+  height: 100%;
+  min-height: 80vh;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+  background-image: linear-gradient(
+      45deg,
+      #d7d7d7 25%,
+      transparent 25%,
+      transparent 75%,
+      #d7d7d7 75%
+    ),
+    linear-gradient(
+      45deg,
+      #d7d7d7 25%,
+      transparent 25%,
+      transparent 75%,
+      #d7d7d7 75%
+    );
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+}
+
+.pdf-page-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.pdf-page-react {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;
+  border-radius: 0 !important;
+}
+
+.pdf-document {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Fix scrollbar styling */
+.pdf-preview-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pdf-preview-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.pdf-preview-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.pdf-preview-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Controls styling */
+.pdf-controls {
+  display: flex;
+  gap: 8px;
+  z-index: 50;
 }
