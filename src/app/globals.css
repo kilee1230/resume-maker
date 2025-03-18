@@ -164,3 +164,33 @@
 :hover {
   cursor: pointer;
 }
+
+/* Make dragged items more visible */
+[data-dnd-draggable="true"] {
+  z-index: 50;
+}
+
+/* Cursor styles for draggable items */
+.cursor-grab {
+  cursor: grab;
+}
+
+.cursor-grabbing {
+  cursor: grabbing !important;
+}
+
+/* Add transition for smoother animations */
+.badge {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Style for badges being dragged */
+.badge[data-dragging="true"] {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  opacity: 0.8;
+}
+
+/* Improve touch interaction */
+.touch-none {
+  touch-action: none;
+}

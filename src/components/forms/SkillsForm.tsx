@@ -1,24 +1,38 @@
 // components/forms/SkillsForm.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Skill } from "@/types/resume";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { PlusIcon, XIcon } from "lucide-react";
+import { PlusIcon, XIcon, ChevronUpIcon, ChevronDownIcon } from "lucide-react";
 
-interface SkillsFormProps {
+// Simplified version without drag and drop for now
+const SkillsForm = ({
+  skills,
+  setSkills,
+}: {
   skills: Skill[];
   setSkills: (skills: Skill[]) => void;
-}
-
-const SkillsForm = ({ skills, setSkills }: SkillsFormProps) => {
+}) => {
+  // Create a local state to track skills
+  const [localSkills, setLocalSkills] = useState<Skill[]>([]);
   const [newSkill, setNewSkill] = useState<string>("");
   const [showLevels, setShowLevels] = useState<boolean>(false);
+
+  // Sync with parent state when props change
+  useEffect(() => {
+    if (Array.isArray(skills)) {
+      setLocalSkills(skills);
+    } else {
+      setLocalSkills([]);
+    }
+  }, [skills]);
 
   const handleAddSkill = () => {
     if (!newSkill.trim()) return;
@@ -29,7 +43,9 @@ const SkillsForm = ({ skills, setSkills }: SkillsFormProps) => {
       level: showLevels ? 3 : undefined,
     };
 
-    setSkills([...skills, skill]);
+    const updatedSkills = [...localSkills, skill];
+    setLocalSkills(updatedSkills);
+    setSkills(updatedSkills);
     setNewSkill("");
   };
 
@@ -41,13 +57,40 @@ const SkillsForm = ({ skills, setSkills }: SkillsFormProps) => {
   };
 
   const handleRemoveSkill = (id: string) => {
-    setSkills(skills.filter((skill) => skill.id !== id));
+    const updatedSkills = localSkills.filter((skill) => skill.id !== id);
+    setLocalSkills(updatedSkills);
+    setSkills(updatedSkills);
   };
 
   const handleLevelChange = (id: string, level: number) => {
-    setSkills(
-      skills.map((skill) => (skill.id === id ? { ...skill, level } : skill))
+    const updatedSkills = localSkills.map((skill) =>
+      skill.id === id ? { ...skill, level } : skill
     );
+    setLocalSkills(updatedSkills);
+    setSkills(updatedSkills);
+  };
+
+  // Manual reordering functions
+  const moveSkillUp = (index: number) => {
+    if (index <= 0) return;
+    const updatedSkills = [...localSkills];
+    [updatedSkills[index - 1], updatedSkills[index]] = [
+      updatedSkills[index],
+      updatedSkills[index - 1],
+    ];
+    setLocalSkills(updatedSkills);
+    setSkills(updatedSkills);
+  };
+
+  const moveSkillDown = (index: number) => {
+    if (index >= localSkills.length - 1) return;
+    const updatedSkills = [...localSkills];
+    [updatedSkills[index], updatedSkills[index + 1]] = [
+      updatedSkills[index + 1],
+      updatedSkills[index],
+    ];
+    setLocalSkills(updatedSkills);
+    setSkills(updatedSkills);
   };
 
   return (
@@ -78,13 +121,14 @@ const SkillsForm = ({ skills, setSkills }: SkillsFormProps) => {
           onClick={handleAddSkill}
           disabled={!newSkill.trim()}
           variant="secondary"
+          type="button"
         >
           <PlusIcon className="w-4 h-4 mr-1" />
           Add
         </Button>
       </div>
 
-      {skills.length === 0 ? (
+      {localSkills.length === 0 ? (
         <div className="p-4 text-center border border-gray-300 border-dashed rounded-md bg-gray-50">
           <p className="text-sm text-gray-500">
             No skills added yet. Add some skills above.
@@ -92,43 +136,71 @@ const SkillsForm = ({ skills, setSkills }: SkillsFormProps) => {
         </div>
       ) : (
         <div className="pt-6">
-          <div className="flex flex-wrap gap-2">
-            {skills.map((skill) => (
-              <Badge
-                key={skill.id}
-                variant="secondary"
-                className="flex items-center gap-2 px-3 py-2 text-sm"
-              >
-                <span>{skill.name}</span>
+          <div className="space-y-2">
+            {localSkills.map((skill, index) => (
+              <div key={skill.id} className="flex items-center gap-2 group">
+                <div className="flex flex-col">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 p-0.5 opacity-70 hover:opacity-100 focus:ring-0"
+                    onClick={() => moveSkillUp(index)}
+                    disabled={index === 0}
+                    title="Move up"
+                  >
+                    <ChevronUpIcon className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 p-0.5 opacity-70 hover:opacity-100 focus:ring-0"
+                    onClick={() => moveSkillDown(index)}
+                    disabled={index === localSkills.length - 1}
+                    title="Move down"
+                  >
+                    <ChevronDownIcon className="w-4 h-4" />
+                  </Button>
+                </div>
+                <Badge
+                  variant="secondary"
+                  className="flex items-center flex-1 gap-2 px-3 py-2 text-sm"
+                >
+                  <span>{skill.name}</span>
 
-                {showLevels && (
-                  <div className="flex space-x-1">
-                    {[1, 2, 3, 4, 5].map((level) => (
-                      <button
-                        key={level}
-                        type="button"
-                        onClick={() => handleLevelChange(skill.id, level)}
-                        className={`w-2 h-2 rounded-full ${
-                          (skill.level || 0) >= level
-                            ? "bg-primary"
-                            : "bg-gray-300"
-                        }`}
-                        title={`Level ${level}`}
-                      ></button>
-                    ))}
-                  </div>
-                )}
-
+                  {showLevels && (
+                    <div className="flex ml-2 space-x-1">
+                      {[1, 2, 3, 4, 5].map((level) => (
+                        <button
+                          key={level}
+                          type="button"
+                          onClick={() => handleLevelChange(skill.id, level)}
+                          className={`w-2 h-2 rounded-full ${
+                            (skill.level || 0) >= level
+                              ? "bg-primary"
+                              : "bg-gray-300"
+                          }`}
+                          title={`Level ${level}`}
+                        ></button>
+                      ))}
+                    </div>
+                  )}
+                </Badge>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="w-4 h-4 p-0 ml-1 rounded-full"
+                  size="icon"
+                  className="w-8 h-8 transition-colors rounded-full hover:bg-red-100 hover:text-red-600 focus:ring-0"
                   onClick={() => handleRemoveSkill(skill.id)}
+                  type="button"
+                  title="Remove skill"
                 >
-                  <XIcon className="w-3 h-3" />
+                  <XIcon className="w-4 h-4" />
                 </Button>
-              </Badge>
+              </div>
             ))}
+          </div>
+
+          <div className="mt-4 text-xs text-muted-foreground">
+            Use the arrow buttons to reorder skills.
           </div>
         </div>
       )}

@@ -11,7 +11,25 @@ interface ResumePreviewProps {
 }
 
 const ResumePreview = ({ resumeData }: ResumePreviewProps) => {
-  const { personal, experiences, education, skills } = resumeData;
+  // Destructure resumeData with safe defaults for each property
+  const {
+    personal = {
+      name: "",
+      email: "",
+      phone: "",
+      location: "",
+      website: "",
+      summary: "",
+    },
+    experiences = [],
+    education = [],
+    skills = [],
+  } = resumeData || {};
+
+  // Ensure all arrays are actually arrays
+  const safeExperiences = Array.isArray(experiences) ? experiences : [];
+  const safeEducation = Array.isArray(education) ? education : [];
+  const safeSkills = Array.isArray(skills) ? skills : [];
 
   return (
     <Card className="sticky resume-preview-container top-20">
@@ -53,11 +71,11 @@ const ResumePreview = ({ resumeData }: ResumePreviewProps) => {
           </div>
         )}
 
-        {experiences.length > 0 && (
+        {safeExperiences.length > 0 && (
           <div className="mb-6">
             <h2 className="mb-3 text-xl font-bold">Experience</h2>
             <Separator className="mb-3" />
-            {experiences.map((exp) => (
+            {safeExperiences.map((exp) => (
               <div key={exp.id} className="mb-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-y-1">
                   <h3 className="mr-2 font-bold">
@@ -79,11 +97,11 @@ const ResumePreview = ({ resumeData }: ResumePreviewProps) => {
           </div>
         )}
 
-        {education.length > 0 && (
+        {safeEducation.length > 0 && (
           <div className="mb-6">
             <h2 className="mb-3 text-xl font-bold">Education</h2>
             <Separator className="mb-3" />
-            {education.map((edu) => (
+            {safeEducation.map((edu) => (
               <div key={edu.id} className="mb-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-y-1">
                   <h3 className="mr-2 font-bold">
@@ -106,12 +124,12 @@ const ResumePreview = ({ resumeData }: ResumePreviewProps) => {
           </div>
         )}
 
-        {skills.length > 0 && (
+        {safeSkills.length > 0 && (
           <div>
             <h2 className="mb-3 text-xl font-bold">Skills</h2>
             <Separator className="mb-3" />
             <div className="flex flex-wrap gap-2">
-              {skills.map((skill) => (
+              {safeSkills.map((skill) => (
                 <Badge key={skill.id} variant="outline" className="py-1.5">
                   {skill.name}
                   {skill.level && (

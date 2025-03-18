@@ -65,7 +65,10 @@ const AIAssistant = ({ resumeData, setResumeData }: AIAssistantProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Select value={field} onValueChange={setField}>
+        <div>
+          <p className="text-sm text-gray-500">Coming Soon</p>
+        </div>
+        {/* <Select value={field} onValueChange={setField}>
           <SelectTrigger>
             <SelectValue placeholder="Select field for AI suggestions" />
           </SelectTrigger>
@@ -76,11 +79,9 @@ const AIAssistant = ({ resumeData, setResumeData }: AIAssistantProps) => {
                 Experience: {exp.company || `Position ${idx + 1}`}
               </SelectItem>
             ))}
-            {/* Add more options for other fields */}
           </SelectContent>
-        </Select>
-
-        <Button
+        </Select> */}
+        {/* <Button
           onClick={handleAISuggestion}
           disabled={loading || !field}
           className="w-full"
@@ -115,7 +116,7 @@ const AIAssistant = ({ resumeData, setResumeData }: AIAssistantProps) => {
               Get AI Suggestion
             </>
           )}
-        </Button>
+        </Button> */}
       </CardContent>
     </Card>
   );
