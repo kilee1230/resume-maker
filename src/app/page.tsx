@@ -68,7 +68,7 @@ export default function HomePage() {
       {/* Desktop layout */}
       <div className="flex flex-col gap-6 lg:flex-row">
         {/* Editor section (visible only on desktop) */}
-        <div className="sticky top-0 hidden w-2/5 h-screen p-4 lg:block">
+        <div className="sticky top-0 hidden w-2/5 h-screen lg:block">
           <EditorContent />
         </div>
         {/* Preview section (full width on mobile, partial on desktop) */}
