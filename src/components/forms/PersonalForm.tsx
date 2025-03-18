@@ -1,9 +1,7 @@
 // components/forms/PersonalForm.tsx
 "use client";
 
-import { useState } from "react";
 import { Personal } from "@/types/resume";
-import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
