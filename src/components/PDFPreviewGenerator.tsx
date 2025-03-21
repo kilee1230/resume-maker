@@ -1,4 +1,3 @@
-// components/PDFPreviewGenerator.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -23,6 +22,7 @@ const PDFPreviewGenerator = ({ resumeData }: PDFPreviewGeneratorProps) => {
   const [scale, setScale] = useState<number>(1.0);
   const [loading, setLoading] = useState<boolean>(true);
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const [error, setError] = useState<string | null>(null);
 
   // Set different default scale based on screen size
   useEffect(() => {
@@ -43,7 +43,15 @@ const PDFPreviewGenerator = ({ resumeData }: PDFPreviewGeneratorProps) => {
 
   // Generate PDF on data change
   useEffect(() => {
-    generatePDF();
+    setLoading(true);
+    setError(null);
+
+    // Use setTimeout to ensure UI updates before heavy PDF generation
+    const timeoutId = setTimeout(() => {
+      generatePDF();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
   }, [resumeData]);
 
   const generatePDF = async () => {
@@ -335,6 +343,13 @@ const PDFPreviewGenerator = ({ resumeData }: PDFPreviewGeneratorProps) => {
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
+    setCurrentPage(1); // Reset to first page when new document loads
+    setLoading(false);
+  };
+
+  const onDocumentLoadError = (error: Error) => {
+    console.error("Error loading PDF:", error);
+    setError("Failed to load PDF");
     setLoading(false);
   };
 
@@ -344,6 +359,10 @@ const PDFPreviewGenerator = ({ resumeData }: PDFPreviewGeneratorProps) => {
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="w-12 h-12 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center h-full">
+            <p>{error}</p>
           </div>
         ) : pdfBlob ? (
           <div
@@ -358,16 +377,25 @@ const PDFPreviewGenerator = ({ resumeData }: PDFPreviewGeneratorProps) => {
               <Document
                 file={pdfBlob}
                 onLoadSuccess={onDocumentLoadSuccess}
+                onError={onDocumentLoadError}
+                loading={
+                  <div className="flex items-center justify-center h-full">
+                    Loading PDF...
+                  </div>
+                }
                 className="pdf-document"
               >
                 {Array.from(new Array(numPages), (_, index) => (
                   <div key={`page_${index + 1}`} className="pdf-page-wrapper">
                     <Page
+                      key={`page_${index + 1}`}
                       pageNumber={index + 1}
                       scale={1}
                       className="pdf-page-react"
                       renderTextLayer={false}
                       renderAnnotationLayer={false}
+                      error={<div>Failed to load page {index + 1}</div>}
+                      loading={<div>Loading page {index + 1}...</div>}
                     />
                   </div>
                 ))}
@@ -379,6 +407,12 @@ const PDFPreviewGenerator = ({ resumeData }: PDFPreviewGeneratorProps) => {
               <Document
                 file={pdfBlob}
                 onLoadSuccess={onDocumentLoadSuccess}
+                onError={onDocumentLoadError}
+                loading={
+                  <div className="flex items-center justify-center h-full">
+                    Loading PDF...
+                  </div>
+                }
                 className="pdf-document"
               >
                 <div className="pdf-page-wrapper">
