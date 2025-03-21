@@ -3,21 +3,19 @@
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { format } from "date-fns";
+
 import { Experience } from "@/types/resume";
+import { parseDate } from "@/utils/parseDate";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { CalendarIcon, Trash2Icon } from "lucide-react";
+import { DatePicker } from "@/components/ui/datepicker";
+
+import { Trash2Icon } from "lucide-react";
 
 interface ExperienceFormProps {
   experiences: Experience[];
@@ -103,14 +101,11 @@ const ExperienceForm = ({
   };
 
   const handleDateChange = (
-    date: Date | null,
+    date: Date | undefined,
     field: "startDate" | "endDate"
   ) => {
-    console.log({ date, field });
     if (activeExperience === null || !date) return;
-
-    const formattedDate = format(date, "MMM yyyy");
-
+    const formattedDate = date ? format(date, "MMM yyyy") : "";
     const updatedExperiences = [...experiences];
     updatedExperiences[activeExperience] = {
       ...updatedExperiences[activeExperience],
@@ -118,44 +113,6 @@ const ExperienceForm = ({
     };
 
     setExperiences(updatedExperiences);
-  };
-
-  // Helper function to parse date string to Date object
-  const parseDate = (dateStr: string): Date | null => {
-    if (!dateStr) return null;
-
-    try {
-      // Try to parse the date (handle "MMM yyyy" format)
-      const months = {
-        Jan: 0,
-        Feb: 1,
-        Mar: 2,
-        Apr: 3,
-        May: 4,
-        Jun: 5,
-        Jul: 6,
-        Aug: 7,
-        Sep: 8,
-        Oct: 9,
-        Nov: 10,
-        Dec: 11,
-      };
-
-      const parts = dateStr.split(" ");
-      if (parts.length === 2) {
-        const month = months[parts[0] as keyof typeof months];
-        const year = parseInt(parts[1]);
-        if (!isNaN(month) && !isNaN(year)) {
-          return new Date(year, month, 1);
-        }
-      }
-
-      // Fallback to standard date parsing
-      const date = new Date(dateStr);
-      return isNaN(date.getTime()) ? null : date;
-    } catch {
-      return null;
-    }
   };
 
   return (
@@ -228,82 +185,32 @@ const ExperienceForm = ({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="startDate">Start Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        id="startDate"
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !experiences[activeExperience].startDate &&
-                            "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="w-4 h-4 mr-2" />
-                        {experiences[activeExperience].startDate ||
-                          "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={
-                          parseDate(
-                            experiences[activeExperience].startDate || ""
-                          ) || undefined
-                        }
-                        onSelect={(date) =>
-                          date && handleDateChange(date, "startDate")
-                        }
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <DatePicker
+                    date={parseDate(experiences[activeExperience].startDate)}
+                    onDateChange={(date) => handleDateChange(date, "startDate")}
+                    placeholder="DD-MM-YYYY"
+                    inputFormat="dd-MM-yyyy"
+                    format="MMM yyyy"
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="endDate">End Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        id="endDate"
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !experiences[activeExperience].endDate &&
-                            "text-muted-foreground",
-                          experiences[activeExperience].current && "opacity-50"
-                        )}
-                        disabled={experiences[activeExperience].current}
-                      >
-                        <CalendarIcon className="w-4 h-4 mr-2" />
-                        {experiences[activeExperience].current
-                          ? "Present"
-                          : experiences[activeExperience].endDate ||
-                            "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={
-                          parseDate(
-                            experiences[activeExperience].endDate || ""
-                          ) || undefined
-                        }
-                        onSelect={(date) =>
-                          date && handleDateChange(date, "endDate")
-                        }
-                        initialFocus
-                        disabled={(date) => {
-                          const startDate = parseDate(
-                            experiences[activeExperience].startDate
-                          );
-                          return startDate ? date < startDate : false;
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <DatePicker
+                    date={parseDate(
+                      experiences[activeExperience].endDate || ""
+                    )}
+                    onDateChange={(date) => handleDateChange(date, "endDate")}
+                    placeholder="DD-MM-YYYY"
+                    inputFormat="dd-MM-yyyy"
+                    format="MMM yyyy"
+                    disabledDates={(date) => {
+                      const startDate = parseDate(
+                        experiences[activeExperience].startDate
+                      );
+                      return startDate ? date < startDate : false;
+                    }}
+                  />
                 </div>
               </div>
 

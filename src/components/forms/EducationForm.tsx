@@ -1,5 +1,5 @@
+// components/EducationForm.tsx
 "use client";
-
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { format } from "date-fns";
@@ -9,14 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { CalendarIcon, Trash2Icon } from "lucide-react";
+import { DatePicker } from "@/components/ui/datepicker";
+import { Trash2Icon } from "lucide-react";
+import { parseDate } from "@/utils/parseDate";
 
 interface EducationFormProps {
   education: Education[];
@@ -47,7 +42,6 @@ const EducationForm = ({ education, setEducation }: EducationFormProps) => {
   const handleRemoveEducation = (index: number) => {
     const newEducation = education.filter((_, i) => i !== index);
     setEducation(newEducation);
-
     if (activeEducation === index) {
       setActiveEducation(
         newEducation.length > 0
@@ -65,45 +59,27 @@ const EducationForm = ({ education, setEducation }: EducationFormProps) => {
     >
   ) => {
     if (activeEducation === null) return;
-
     const { name, value } = e.target;
-
     const updatedEducation = [...education];
     updatedEducation[activeEducation] = {
       ...updatedEducation[activeEducation],
       [name]: value,
     };
-
     setEducation(updatedEducation);
   };
 
   const handleDateChange = (
-    date: Date | null,
+    date: Date | undefined,
     field: "startDate" | "endDate"
   ) => {
-    if (activeEducation === null || !date) return;
-
-    const formattedDate = format(date, "MMM yyyy");
-
+    if (activeEducation === null) return;
+    const formattedDate = date ? format(date, "MMM yyyy") : "";
     const updatedEducation = [...education];
     updatedEducation[activeEducation] = {
       ...updatedEducation[activeEducation],
       [field]: formattedDate,
     };
-
     setEducation(updatedEducation);
-  };
-
-  // Helper function to parse date string to Date object
-  const parseDate = (dateStr: string): Date | null => {
-    if (!dateStr) return null;
-
-    try {
-      const date = new Date(dateStr);
-      return isNaN(date.getTime()) ? null : date;
-    } catch {
-      return null;
-    }
   };
 
   return (
@@ -114,7 +90,6 @@ const EducationForm = ({ education, setEducation }: EducationFormProps) => {
           + Add Education
         </Button>
       </div>
-
       {education.length === 0 ? (
         <div className="p-4 text-center border border-gray-300 border-dashed rounded-md bg-gray-50">
           <p className="text-sm text-gray-500">
@@ -137,7 +112,6 @@ const EducationForm = ({ education, setEducation }: EducationFormProps) => {
               </Button>
             ))}
           </div>
-
           {activeEducation !== null && (
             <div className="pt-6 space-y-4">
               <div className="space-y-2">
@@ -150,7 +124,6 @@ const EducationForm = ({ education, setEducation }: EducationFormProps) => {
                   placeholder="Bachelor of Science in Computer Science"
                 />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="institution">Institution</Label>
                 <Input
@@ -161,7 +134,6 @@ const EducationForm = ({ education, setEducation }: EducationFormProps) => {
                   placeholder="University of Example"
                 />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="location">Location</Label>
                 <Input
@@ -172,79 +144,34 @@ const EducationForm = ({ education, setEducation }: EducationFormProps) => {
                   placeholder="City, State/Country"
                 />
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="startDate">Start Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !education[activeEducation].startDate &&
-                            "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="w-4 h-4 mr-2" />
-                        {education[activeEducation].startDate || "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={
-                          parseDate(education[activeEducation].startDate) ||
-                          undefined
-                        }
-                        onSelect={(date) =>
-                          handleDateChange(date ?? null, "startDate")
-                        }
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <DatePicker
+                    date={parseDate(education[activeEducation].startDate)}
+                    onDateChange={(date) => handleDateChange(date, "startDate")}
+                    placeholder="DD-MM-YYYY"
+                    inputFormat="dd-MM-yyyy"
+                    format="MMM yyyy"
+                  />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="endDate">End Date (or Expected)</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !education[activeEducation].endDate &&
-                            "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="w-4 h-4 mr-2" />
-                        {education[activeEducation].endDate || "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={
-                          parseDate(education[activeEducation].endDate ?? "") ||
-                          undefined
-                        }
-                        onSelect={(date) =>
-                          handleDateChange(date ?? null, "endDate")
-                        }
-                        disabled={(date) =>
-                          parseDate(education[activeEducation].startDate)
-                            ? date <
-                              parseDate(education[activeEducation].startDate)!
-                            : false
-                        }
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <DatePicker
+                    date={parseDate(education[activeEducation].endDate || "")}
+                    onDateChange={(date) => handleDateChange(date, "endDate")}
+                    placeholder="DD-MM-YYYY"
+                    inputFormat="dd-MM-yyyy"
+                    format="MMM yyyy"
+                    disabledDates={(date) => {
+                      const startDate = parseDate(
+                        education[activeEducation].startDate
+                      );
+                      return startDate ? date < startDate : false;
+                    }}
+                  />
                 </div>
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="description">Description (optional)</Label>
                 <Textarea
@@ -256,9 +183,7 @@ const EducationForm = ({ education, setEducation }: EducationFormProps) => {
                   placeholder="Relevant coursework, honors, activities, etc."
                 />
               </div>
-
               <Separator />
-
               <Button
                 onClick={() => handleRemoveEducation(activeEducation)}
                 variant="destructive"
