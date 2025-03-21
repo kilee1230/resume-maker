@@ -223,6 +223,59 @@ const generateResumeForExport = async (resumeData: ResumeData) => {
     y += 3;
   }
 
+  // Certifications
+  if (
+    Array.isArray(resumeData?.certifications) &&
+    resumeData.certifications.length > 0
+  ) {
+    y = addHeading("Certifications", y);
+
+    for (const cert of resumeData.certifications) {
+      // Check if we need a new page
+      y = checkNewPage(y, 15);
+
+      // Certification name
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${cert.name}`, margin, y);
+
+      // Date
+      if (cert.date) {
+        const textWidth =
+          (doc.getStringUnitWidth(cert.date) * 10) / doc.internal.scaleFactor;
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(cert.date, pageWidth - margin - textWidth, y);
+      }
+
+      y += 5;
+
+      // Issuer
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "italic");
+      doc.text(`${cert.issuer}`, margin, y);
+      y += 5;
+
+      // Description if available
+      if (cert.description) {
+        y = addWrappedText(cert.description, y, 10);
+      }
+
+      // URL if available
+      if (cert.url) {
+        y += 2;
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 255);
+        doc.text(`Credential: ${cert.url}`, margin, y);
+        doc.setTextColor(0);
+      }
+
+      y += 8;
+    }
+
+    y += 3;
+  }
+
   // Skills with ratings in brackets
   if (Array.isArray(resumeData?.skills) && resumeData.skills.length > 0) {
     y = addHeading("Skills", y);

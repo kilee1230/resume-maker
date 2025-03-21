@@ -37,17 +37,28 @@ export const SkillSchema = z.object({
   level: z.number().min(1).max(5).optional(),
 });
 
+export const CertificationSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  issuer: z.string(),
+  date: z.string(),
+  url: z.string().optional(),
+  description: z.string().optional(),
+});
+
 export const ResumeSchema = z.object({
   personal: PersonalSchema,
   experiences: z.array(ExperienceSchema),
   education: z.array(EducationSchema),
   skills: z.array(SkillSchema),
+  certifications: z.array(CertificationSchema),
 });
 
 export type Personal = z.infer<typeof PersonalSchema>;
 export type Experience = z.infer<typeof ExperienceSchema>;
 export type Education = z.infer<typeof EducationSchema>;
 export type Skill = z.infer<typeof SkillSchema>;
+export type Certification = z.infer<typeof CertificationSchema>;
 export type ResumeData = z.infer<typeof ResumeSchema>;
 
 export const defaultResumeData: ResumeData = {
@@ -62,4 +73,5 @@ export const defaultResumeData: ResumeData = {
   experiences: [],
   education: [],
   skills: [],
+  certifications: [],
 };

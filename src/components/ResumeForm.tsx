@@ -6,6 +6,8 @@ import PersonalForm from "./forms/PersonalForm";
 import ExperienceForm from "./forms/ExperienceForm";
 import EducationForm from "./forms/EducationForm";
 import SkillsForm from "./forms/SkillsForm";
+import CertificationsForm from "./forms/CertificationsForm";
+import { User, Briefcase, GraduationCap, Award, Wrench } from "lucide-react";
 
 interface ResumeFormProps {
   resumeData: ResumeData;
@@ -26,12 +28,43 @@ const ResumeForm = ({
       onValueChange={setActiveSection}
       className="space-y-4"
     >
-      <div className="pb-1 overflow-x-auto">
-        <TabsList className="grid grid-cols-4 w-full min-w-[400px]">
-          <TabsTrigger value="personal">Personal</TabsTrigger>
-          <TabsTrigger value="experiences">Experience</TabsTrigger>
-          <TabsTrigger value="education">Education</TabsTrigger>
-          <TabsTrigger value="skills">Skills</TabsTrigger>
+      <div className="p-2 pb-8 rounded-lg">
+        <TabsList className="flex flex-wrap w-full gap-2 bg-transparent">
+          <TabsTrigger
+            value="personal"
+            className="rounded-full px-3 py-1.5 text-xs flex items-center gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm"
+          >
+            <User size={12} />
+            <span className="hidden sm:inline">Personal</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="experiences"
+            className="rounded-full px-3 py-1.5 text-xs flex items-center gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm"
+          >
+            <Briefcase size={12} />
+            <span className="hidden sm:inline">Experience</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="education"
+            className="rounded-full px-3 py-1.5 text-xs flex items-center gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm"
+          >
+            <GraduationCap size={12} />
+            <span className="hidden sm:inline">Education</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="certifications"
+            className="rounded-full px-3 py-1.5 text-xs flex items-center gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm"
+          >
+            <Award size={12} />
+            <span className="hidden sm:inline">Certifications</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="skills"
+            className="rounded-full px-3 py-1.5 text-xs flex items-center gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm"
+          >
+            <Wrench size={12} />
+            <span className="hidden sm:inline">Skills</span>
+          </TabsTrigger>
         </TabsList>
       </div>
 
@@ -56,6 +89,15 @@ const ResumeForm = ({
           education={resumeData.education}
           setEducation={(education) =>
             setResumeData({ ...resumeData, education })
+          }
+        />
+      </TabsContent>
+
+      <TabsContent value="certifications" className="pt-4">
+        <CertificationsForm
+          certifications={resumeData.certifications}
+          setCertifications={(certifications) =>
+            setResumeData({ ...resumeData, certifications })
           }
         />
       </TabsContent>
