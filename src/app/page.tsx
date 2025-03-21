@@ -56,6 +56,8 @@ const EditorContent: React.FC<EditorContentProps> = React.memo(
   )
 );
 
+EditorContent.displayName = "EditorContent";
+
 export default function HomePage() {
   const [resumeData, setResumeData] = useState<ResumeData>(defaultResumeData);
   const [activeSection, setActiveSection] = useState<string>("personal");
