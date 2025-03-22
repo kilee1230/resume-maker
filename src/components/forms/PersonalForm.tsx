@@ -19,7 +19,7 @@ const PersonalForm = ({ personal, setPersonal }: PersonalFormProps) => {
   };
 
   return (
-    <div className="pt-6 space-y-4">
+    <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">Full Name</Label>
         <Input
