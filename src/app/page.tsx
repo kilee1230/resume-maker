@@ -8,7 +8,7 @@ import { ResumeData, defaultResumeData } from "@/types/resume";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import React from "react";
 import { useMediaQuery } from "@/hook/useMediaQuery";
 
@@ -45,7 +45,9 @@ const EditorContent: React.FC<EditorContentProps> = React.memo(
             size="icon"
             aria-label="Close drawer"
             onClick={closeDrawer}
-          />
+          >
+            <X className="w-4 h-4" />
+          </Button>
         </div>
       )}
 
@@ -98,7 +100,11 @@ export default function HomePage() {
               <Pencil className="w-6 h-6" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-[80vh] pt-0 overflow-hidden">
+          <SheetContent
+            side="bottom"
+            className="h-[80vh] pt-0 overflow-hidden"
+            hideCloseButton={true}
+          >
             <EditorContent
               resumeData={resumeData}
               setResumeData={setResumeData}
