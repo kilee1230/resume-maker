@@ -19,6 +19,7 @@ interface EditorContentProps {
   setActiveSection: React.Dispatch<React.SetStateAction<string>>;
   closeDrawer?: () => void;
   isMobile?: boolean;
+  maxHeight?: string;
 }
 
 const EditorContent: React.FC<EditorContentProps> = React.memo(
@@ -29,11 +30,16 @@ const EditorContent: React.FC<EditorContentProps> = React.memo(
     setActiveSection,
     closeDrawer,
     isMobile = false,
+    maxHeight = "calc(100vh - 2rem)",
   }) => (
-    <div className="space-y-4 overflow-y-auto">
-      {/* Only show close button in mobile view */}
+    <div
+      className={`flex flex-col ${
+        isMobile ? "h-[75vh]" : "h-[calc(100vh-2rem)]"
+      }`}
+    >
+      {/* Close button - only show in mobile */}
       {isMobile && closeDrawer && (
-        <div className="flex justify-end mb-2">
+        <div className="flex justify-end px-4 mb-2">
           <Button
             variant="ghost"
             size="icon"
@@ -42,7 +48,9 @@ const EditorContent: React.FC<EditorContentProps> = React.memo(
           />
         </div>
       )}
-      <div className="px-4">
+
+      {/* Scrollable content area */}
+      <div className="flex-1 px-4 pb-4 overflow-y-auto">
         <Card>
           <CardContent className="pt-6">
             <ResumeForm
@@ -53,8 +61,10 @@ const EditorContent: React.FC<EditorContentProps> = React.memo(
             />
           </CardContent>
         </Card>
+
         <div className="my-4"></div>
         <AIAssistant resumeData={resumeData} setResumeData={setResumeData} />
+
         <div className="my-4"></div>
         <ExportPDF resumeData={resumeData} />
       </div>
@@ -88,7 +98,7 @@ export default function HomePage() {
               <Pencil className="w-6 h-6" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-[80vh]">
+          <SheetContent side="bottom" className="h-[80vh] pt-0 overflow-hidden">
             <EditorContent
               resumeData={resumeData}
               setResumeData={setResumeData}
@@ -104,7 +114,7 @@ export default function HomePage() {
       {/* Desktop layout */}
       <div className="flex flex-col gap-6 lg:flex-row">
         {/* Editor section (visible only on desktop) */}
-        <div className="sticky top-0 hidden w-2/5 h-screen p-4 lg:block">
+        <div className="sticky top-0 hidden w-2/5 h-screen p-4 overflow-hidden lg:block">
           <EditorContent
             resumeData={resumeData}
             setResumeData={setResumeData}
@@ -113,6 +123,7 @@ export default function HomePage() {
             isMobile={isMobile}
           />
         </div>
+
         {/* Preview section (full width on mobile, partial on desktop) */}
         <div className="w-full overflow-y-auto lg:w-3/5">
           <ResumePreview resumeData={resumeData} />
